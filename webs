@@ -1,5 +1,3 @@
--- Create a global variable to hold the webhook link
-getgenv().webhookmessage = "https://default-webhook-url.com"  -- The user can update this link as needed
 
 -- Create a global function for sending webhook messages using the global link
 getgenv().sendWebhookMessage = function(data1)
