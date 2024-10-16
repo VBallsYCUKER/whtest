@@ -1,5 +1,17 @@
 getgenv().WebhookURL = getgenv().WebhookURL or "YOUR_WEBHOOK_URL_HERE"
 
+-- Function to format large numbers
+local function format_number(number)
+    local suffixes = {"", "K", "M", "B", "T", "QD"}
+    local index = 1
+    while math.abs(number) >= 1000 and index < #suffixes do
+        number = number / 1000.0
+        index = index + 1
+    end
+    return string.format("%.2f%s", number, suffixes[index])
+end
+
+-- Function to send a webhook message
 local function webhookmessage(data, link)
     local HttpService = game:GetService("HttpService")
     local response = http_request({
@@ -11,13 +23,15 @@ local function webhookmessage(data, link)
     print(response.Success)
 end
 
+-- Function to update player stats and send them to the webhook
 local function updatePlayerStatsAndSendWebhook(player)
     local stats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
     if stats then
-        local strength = stats:FindFirstChild("Strength") and stats.Strength.Value or math.huge
-        local defense = stats:FindFirstChild("Defense") and stats.Defense.Value or math.huge
-        local energy = stats:FindFirstChild("Energy") and stats.Energy.Value or math.huge
-        local speed = stats:FindFirstChild("Speed") and stats.Speed.Value or math.huge
+        -- Abbreviate stats using format_number
+        local strength = stats:FindFirstChild("Strength") and format_number(stats.Strength.Value) or math.huge
+        local defense = stats:FindFirstChild("Defense") and format_number(stats.Defense.Value) or math.huge
+        local energy = stats:FindFirstChild("Energy") and format_number(stats.Energy.Value) or math.huge
+        local speed = stats:FindFirstChild("Speed") and format_number(stats.Speed.Value) or math.huge
 
         local world = game.PlaceId == 5151400895 and "Bills" or "Earth"
 
@@ -38,14 +52,5 @@ local function updatePlayerStatsAndSendWebhook(player)
     end
 end
 
+-- Call function for the LocalPlayer
 pcall(function() updatePlayerStatsAndSendWebhook(game.Players.LocalPlayer) end)
-
-local function format_number(number)
-    local suffixes = {"", "K", "M", "B", "T", "QD"}
-    local index = 1
-    while math.abs(number) >= 1000 and index < #suffixes do
-        number = number / 1000.0
-        index = index + 1
-    end
-    return string.format("%.2f%s", number, suffixes[index])
-end
