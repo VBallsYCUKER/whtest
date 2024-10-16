@@ -53,5 +53,8 @@ local function updatePlayerStatsAndSendWebhook(player)
     end
 end
 
--- Call function for the LocalPlayer
-pcall(function() updatePlayerStatsAndSendWebhook(game.Players.LocalPlayer) end)
+-- Loop to send webhook every 5 minutes
+while true do
+    pcall(function() updatePlayerStatsAndSendWebhook(game.Players.LocalPlayer) end)
+    wait(300)  -- Wait for 5 minutes (300 seconds)
+end
