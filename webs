@@ -32,7 +32,7 @@ local function updatePlayerStatsAndSendWebhook(player)
         local defense = playerStats:FindFirstChild("Defense") and format_number(playerStats.Defense.Value) or math.huge
         local energy = playerStats:FindFirstChild("Energy") and format_number(playerStats.Energy.Value) or math.huge
         local speed = playerStats:FindFirstChild("Speed") and format_number(playerStats.Speed.Value) or math.huge
-        local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Get rebirths without abbreviating
+        local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Get rebirths without abbreviation
 
         local world = game.PlaceId == 5151400895 and "Bills" or "Earth"
 
@@ -40,7 +40,7 @@ local function updatePlayerStatsAndSendWebhook(player)
             content = "",
             embeds = {{
                 title = "Stat Farm - " .. player.Name,
-                description = string.format("Planet: **%s**\nStrength: **%s**\nDefense: **%s**\nEnergy: **%s**\nSpeed: **%s**\nRebirths: **%s**", world, strength, defense, energy, speed, rebirths),
+                description = string.format("Planet: **%s**\nStrength: **%s**\nDefense: **%s**\nEnergy: **%s**\nSpeed: **%s**\nRebirths: **%d**", world, strength, defense, energy, speed, rebirths),
                 color = 6248703,
                 footer = {text = "v0.1", icon_url = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"},
                 thumbnail = {url = "https://tr.rbxcdn.com/180DAY-fa4640ea47b1096f1be0d0ecb3e58ba9/768/432/Image/Webp/noFilter"}
