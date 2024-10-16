@@ -23,7 +23,7 @@ local function updatePlayerStatsAndSendWebhook(player)
     if playerStats then
         -- Fetch rebirths and energy
         local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Fetch rebirth data
-        local energyStat = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge  -- Fetch energy stat
+        local Stats = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge  -- Fetch energy stat
 
         -- Prepare the data for the webhook message
         local currentworld = ""
@@ -40,7 +40,7 @@ local function updatePlayerStatsAndSendWebhook(player)
                 ["title"] = "Stat Farm - " .. player.Name,
                 ["description"] = "Planet: **" .. currentworld .. "**\n" ..
                                   "Rebs: **" .. rebirths .. "**\n" ..
-                                  "Stats: **" .. energyStat .. "**",
+                                  "Stats: **" .. Stats .. "**",
                 ["color"] = 6248703,
                 ["footer"] = {
                     ["text"] = "v0.1",
