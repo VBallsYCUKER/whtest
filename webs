@@ -1,6 +1,10 @@
--- Create a global function for sending webhook messages
-getgenv().webhookmessage = function(data1, link)
+-- Create a global variable to hold the webhook link
+getgenv().webhookmessage = "https://default-webhook-url.com"  -- The user can update this link as needed
+
+-- Create a global function for sending webhook messages using the global link
+getgenv().sendWebhookMessage = function(data1)
     local HttpService = game:GetService("HttpService")
+    local link = getgenv().webhookmessage  -- Fetch the globally set webhook link
 
     local response = http_request({
         Url = link,
@@ -45,20 +49,8 @@ getgenv().tpwebhook = function()
         ["attachments"] = {}
     }
 
-    local HttpService = game:GetService("HttpService")
-
-    local response = http_request({
-        Url = "https://ptb.discord.com/api/webhooks/1259310858354298881/YSS4zjRWfabHMfk1mbF6VXhBeqkGKsD1CfUzBDg8GrGb2iGzCGOgzdviKB00dETMguw-",
-
-        Method = "POST",
-        Headers = {
-            ["Content-Type"] = "application/json"
-        },
-
-        Body = HttpService:JSONEncode(data1)
-    })
-
-    print(response.Success)
+    -- Call the sendWebhookMessage function, using the global webhook URL
+    getgenv().sendWebhookMessage(data1)
 end
 
 -- Use pcall to safely call the tpwebhook function
