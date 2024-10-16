@@ -1,77 +1,51 @@
--- Ensure getgenv() is used so the WebhookURL is globally accessible
 getgenv().WebhookURL = getgenv().WebhookURL or "YOUR_WEBHOOK_URL_HERE"
 
--- Function to abbreviate large numbers (K = thousand, M = million, etc.)
-local function abbreviateNumber(number)
-    if number >= 1e12 then
-        return string.format("%.2fT", number / 1e12)  -- Trillions
-    elseif number >= 1e9 then
-        return string.format("%.2fB", number / 1e9)   -- Billions
-    elseif number >= 1e6 then
-        return string.format("%.2fM", number / 1e6)   -- Millions
-    elseif number >= 1e3 then
-        return string.format("%.2fK", number / 1e3)   -- Thousands
-    else
-        return tostring(number)
-    end
-end
-
--- Function to send a webhook message
-local function webhookmessage(data1, link)
+local function webhookmessage(data, link)
     local HttpService = game:GetService("HttpService")
-
     local response = http_request({
         Url = link,
         Method = "POST",
-        Headers = {
-            ["Content-Type"] = "application/json"
-        },
-        Body = HttpService:JSONEncode(data1)
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode(data)
     })
-
     print(response.Success)
 end
 
--- Function to update player stats and send them to the webhook
 local function updatePlayerStatsAndSendWebhook(player)
-    local playerStats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
-    if playerStats then
-        -- Fetch and abbreviate the energy stat
-        local energyStat = playerStats:FindFirstChild("Energy") and abbreviateNumber(playerStats.Energy.Value) or "N/A"
+    local stats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
+    if stats then
+        local strength = stats:FindFirstChild("Strength") and stats.Strength.Value or math.huge
+        local defense = stats:FindFirstChild("Defense") and stats.Defense.Value or math.huge
+        local energy = stats:FindFirstChild("Energy") and stats.Energy.Value or math.huge
+        local speed = stats:FindFirstChild("Speed") and stats.Speed.Value or math.huge
 
-        -- Determine the current world
-        local currentworld = ""
-        if game.PlaceId == 5151400895 then
-            currentworld = "Bills"
-        else
-            currentworld = "Earth"
-        end
+        local world = game.PlaceId == 5151400895 and "Bills" or "Earth"
 
-        -- Webhook message data with only the energy stat
-        local data1 = {
-            ["content"] = "",
-            ["embeds"] = {{
-                ["title"] = "Stat Farm - " .. player.Name,
-                ["description"] = "Planet: **" .. currentworld .. "**\n" ..
-                                  "Energy: **" .. energyStat .. "**",
-                ["color"] = 6248703,
-                ["footer"] = {
-                    ["text"] = "v0.1",
-                    ["icon_url"] = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"
-                },
-                ["thumbnail"] = {
-                    ["url"] = "https://tr.rbxcdn.com/180DAY-fa4640ea47b1096f1be0d0ecb3e58ba9/768/432/Image/Webp/noFilter"
-                }
+        local data = {
+            content = "",
+            embeds = {{
+                title = "Stat Farm - " .. player.Name,
+                description = string.format("Planet: **%s**\nStrength: **%s**\nDefense: **%s**\nEnergy: **%s**\nSpeed: **%s**", world, strength, defense, energy, speed),
+                color = 6248703,
+                footer = {text = "v0.1", icon_url = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"},
+                thumbnail = {url = "https://tr.rbxcdn.com/180DAY-fa4640ea47b1096f1be0d0ecb3e58ba9/768/432/Image/Webp/noFilter"}
             }},
-            ["username"] = "webhook testing",
-            ["avatar_url"] = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png",
-            ["attachments"] = {}
+            username = "webhook testing",
+            avatar_url = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"
         }
 
-        -- Send the webhook message with the energy stat
-        webhookmessage(data1, getgenv().WebhookURL)
+        webhookmessage(data, getgenv().WebhookURL)
     end
 end
 
--- Example of calling the function for the LocalPlayer
 pcall(function() updatePlayerStatsAndSendWebhook(game.Players.LocalPlayer) end)
+
+local function format_number(number)
+    local suffixes = {"", "K", "M", "B", "T", "QD"}
+    local index = 1
+    while math.abs(number) >= 1000 and index < #suffixes do
+        number = number / 1000.0
+        index = index + 1
+    end
+    return string.format("%.2f%s", number, suffixes[index])
+end
