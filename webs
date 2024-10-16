@@ -21,9 +21,11 @@ end
 local function updatePlayerStatsAndSendWebhook(player)
     local playerStats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
     if playerStats then
-        -- Fetch rebirths and energy
-        local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Fetch rebirth data
-        local Stats = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge  -- Fetch energy stat
+        -- Fetch stats
+        local strengthStat = playerStats:FindFirstChild("Strength") and playerStats.Strength.Value or math.huge
+        local defenceStat = playerStats:FindFirstChild("Defense") and playerStats.Defense.Value or math.huge
+        local energyStat = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge
+        local speedStat = playerStats:FindFirstChild("Speed") and playerStats.Speed.Value or math.huge
 
         -- Prepare the data for the webhook message
         local currentworld = ""
@@ -33,14 +35,16 @@ local function updatePlayerStatsAndSendWebhook(player)
             currentworld = "Earth"
         end
 
-        -- Webhook message data including only energy and rebirths
+        -- Webhook message data including stats
         local data1 = {
             ["content"] = "",
             ["embeds"] = {{
                 ["title"] = "Stat Farm - " .. player.Name,
                 ["description"] = "Planet: **" .. currentworld .. "**\n" ..
-                                  "Rebs: **" .. rebirths .. "**\n" ..
-                                  "Stats: **" .. Stats .. "**",
+                                  "Strength: **" .. strengthStat .. "**\n" ..
+                                  "Defense: **" .. defenceStat .. "**\n" ..
+                                  "Energy: **" .. energyStat .. "**\n" ..
+                                  "Speed: **" .. speedStat .. "**",
                 ["color"] = 6248703,
                 ["footer"] = {
                     ["text"] = "v0.1",
@@ -55,7 +59,7 @@ local function updatePlayerStatsAndSendWebhook(player)
             ["attachments"] = {}
         }
 
-        -- Send the webhook message with energy and rebirths
+        -- Send the webhook message with stats
         local HttpService = game:GetService("HttpService")
 
         local response = http_request({
