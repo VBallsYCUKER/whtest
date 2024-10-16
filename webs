@@ -1,0 +1,65 @@
+-- Create a global function for sending webhook messages
+getgenv().webhookmessage = function(data1, link)
+    local HttpService = game:GetService("HttpService")
+
+    local response = http_request({
+        Url = link,
+
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+
+        Body = HttpService:JSONEncode(data1)
+    })
+
+    print(response.Success)
+end
+
+-- Create a global function for sending a teleport webhook
+getgenv().tpwebhook = function()
+
+    local currentworld = ""
+    if game.PlaceId == 5151400895 then
+        currentworld = "Bills"
+    else
+        currentworld = "Earth"
+    end
+
+    local data1 = {
+        ["content"] = "",
+        ["embeds"] = {{
+            ["title"] = "Stat Farm - " .. game.Players.LocalPlayer.Name,
+            ["description"] = "\nPlanet: **" .. currentworld .. "**",
+            ["color"] = 6248703,
+            ["footer"] = {
+                ["text"] = "v0.1",
+                ["icon_url"] = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png?ex=67106df0&is=670f1c70&hm=4c9506318db653412ee1b96990b09051f78598b92403c3ae7e5f443efa2cdc10&"
+            },
+            ["thumbnail"] = {
+                ["url"] = "https://tr.rbxcdn.com/180DAY-fa4640ea47b1096f1be0d0ecb3e58ba9/768/432/Image/Webp/noFilter"
+            }
+        }},
+        ["username"] = "webhook testing",
+        ["avatar_url"] = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png?ex=67106df0&is=670f1c70&hm=4c9506318db653412ee1b96990b09051f78598b92403c3ae7e5f443efa2cdc10&",
+        ["attachments"] = {}
+    }
+
+    local HttpService = game:GetService("HttpService")
+
+    local response = http_request({
+        Url = "https://ptb.discord.com/api/webhooks/1259310858354298881/YSS4zjRWfabHMfk1mbF6VXhBeqkGKsD1CfUzBDg8GrGb2iGzCGOgzdviKB00dETMguw-",
+
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+
+        Body = HttpService:JSONEncode(data1)
+    })
+
+    print(response.Success)
+end
+
+-- Use pcall to safely call the tpwebhook function
+pcall(function() tpwebhook() end)
