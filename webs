@@ -1,6 +1,21 @@
 -- Ensure getgenv() is used so the WebhookURL is globally accessible
 getgenv().WebhookURL = getgenv().WebhookURL or "YOUR_WEBHOOK_URL_HERE"
 
+-- Function to abbreviate large numbers (K = thousand, M = million, etc.)
+local function abbreviateNumber(number)
+    if number >= 1e12 then
+        return string.format("%.2fT", number / 1e12)  -- Trillions
+    elseif number >= 1e9 then
+        return string.format("%.2fB", number / 1e9)   -- Billions
+    elseif number >= 1e6 then
+        return string.format("%.2fM", number / 1e6)   -- Millions
+    elseif number >= 1e3 then
+        return string.format("%.2fK", number / 1e3)   -- Thousands
+    else
+        return tostring(number)
+    end
+end
+
 -- Function to send a webhook message
 local function webhookmessage(data1, link)
     local HttpService = game:GetService("HttpService")
@@ -21,13 +36,10 @@ end
 local function updatePlayerStatsAndSendWebhook(player)
     local playerStats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
     if playerStats then
-        -- Fetch stats
-        local strengthStat = playerStats:FindFirstChild("Strength") and playerStats.Strength.Value or math.huge
-        local defenceStat = playerStats:FindFirstChild("Defense") and playerStats.Defense.Value or math.huge
-        local energyStat = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge
-        local speedStat = playerStats:FindFirstChild("Speed") and playerStats.Speed.Value or math.huge
+        -- Fetch and abbreviate the energy stat
+        local energyStat = playerStats:FindFirstChild("Energy") and abbreviateNumber(playerStats.Energy.Value) or "N/A"
 
-        -- Prepare the data for the webhook message
+        -- Determine the current world
         local currentworld = ""
         if game.PlaceId == 5151400895 then
             currentworld = "Bills"
@@ -35,16 +47,13 @@ local function updatePlayerStatsAndSendWebhook(player)
             currentworld = "Earth"
         end
 
-        -- Webhook message data including stats
+        -- Webhook message data with only the energy stat
         local data1 = {
             ["content"] = "",
             ["embeds"] = {{
                 ["title"] = "Stat Farm - " .. player.Name,
                 ["description"] = "Planet: **" .. currentworld .. "**\n" ..
-                                  "Strength: **" .. strengthStat .. "**\n" ..
-                                  "Defense: **" .. defenceStat .. "**\n" ..
-                                  "Energy: **" .. energyStat .. "**\n" ..
-                                  "Speed: **" .. speedStat .. "**",
+                                  "Energy: **" .. energyStat .. "**",
                 ["color"] = 6248703,
                 ["footer"] = {
                     ["text"] = "v0.1",
@@ -59,19 +68,8 @@ local function updatePlayerStatsAndSendWebhook(player)
             ["attachments"] = {}
         }
 
-        -- Send the webhook message with stats
-        local HttpService = game:GetService("HttpService")
-
-        local response = http_request({
-            Url = getgenv().WebhookURL,  -- Using the URL from the getgenv() table
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode(data1)
-        })
-
-        print(response.Success)
+        -- Send the webhook message with the energy stat
+        webhookmessage(data1, getgenv().WebhookURL)
     end
 end
 
