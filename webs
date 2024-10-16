@@ -1,4 +1,7 @@
 getgenv().WebhookURL = getgenv().WebhookURL or "YOUR_WEBHOOK_URL_HERE"
+getgenv().quests = {  -- Store quests in the global environment
+    -- Add your quests here if needed, otherwise you can use SelectedQuests directly.
+}
 
 -- Function to format large numbers
 local function format_number(number)
@@ -24,37 +27,66 @@ local function webhookmessage(data, link)
 end
 
 -- Function to update player stats and send them to the webhook
-local function updatePlayerStatsAndSendWebhook(player)
+local lastQuest = "No current quest"  -- Initialize last quest
+local function updatePlayerStatsAndSendWebhook(player, SelectedQuests, checkValue)
     local playerStats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
     if playerStats then
-        -- Abbreviate stats using format_number, but keep rebirths as is
+        -- Abbreviate stats using format_number
         local strength = playerStats:FindFirstChild("Strength") and format_number(playerStats.Strength.Value) or math.huge
         local defense = playerStats:FindFirstChild("Defense") and format_number(playerStats.Defense.Value) or math.huge
         local energy = playerStats:FindFirstChild("Energy") and format_number(playerStats.Energy.Value) or math.huge
         local speed = playerStats:FindFirstChild("Speed") and format_number(playerStats.Speed.Value) or math.huge
         local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Get rebirths without abbreviation
 
-        local world = game.PlaceId == 5151400895 and "Bills" or "Earth"
-
-        local data = {
+        -- Check for quest change
+        if game:GetService("ReplicatedStorage").Datas[player.UserId].Quest.Value ~= SelectedQuests then
+            -- Update the last quest
+            lastQuest = game:GetService("ReplicatedStorage").Datas[player.UserId].Quest.Value
+            
+            -- Teleport to the NPC for the selected quest
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = game:GetService("Workspace").Others.NPCs[SelectedQuests].HumanoidRootPart.CFrame
+            
+            repeat
+                task.wait()
+                game.ReplicatedStorage.Package.Events.Qaction:InvokeServer(game:GetService("Workspace").Others.NPCs[SelectedQuests])
+            until game:GetService("ReplicatedStorage").Datas[player.UserId].Quest.Value == SelectedQuests or game.Players.LocalPlayer.Character.Humanoid.Health <= 0
+            
+            -- Prepare and send the quest update webhook message
+            local data1 = {
+                ["content"] = "",
+                ["embeds"] = {{
+                    ["title"] = "Dbu Farm - " .. game.Players.LocalPlayer.Name,
+                    ["description"] = "\n**Boss:**\n " .. SelectedQuests .. "\n**Stats:**\n " .. tostring(format_number(checkValue)),
+                    ["color"] = 6248703,
+                    ["footer"] = {
+                        ["text"] = "Script Version v9.0",
+                        ["icon_url"] = "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ccceaa97-debb-4d23-9012-1df4dab74e1e/de0uz55-d81baa8f-a1e6-4c85-a116-a7c865d81f2b.png/v1/fill/w_1024,h_576,q_80,strp/dragon_blox_ultimate_by_itzduo_de0uz55-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NTc2IiwicGF0aCI6IlwvZlwvY2NjZWFhOTctZGViYi00ZDIzLTkwMTItMWRmNGRhYjc0ZTFlXC9kZTB1ejU1LWQ4MWJhYThmLWExZTYtNGM4NS1hMTE2LWE3Yzg2NWQ4MWYyYi5wbmciLCJ3aWR0aCI6Ijw9MTAyNCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.f25oq5g593PcgSZFvy1nANEOTDVidFgugu9iQdPZG_Y"
+                    },
+                    ["thumbnail"] = {
+                        ["url"] = "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ccceaa97-debb-4d23-9012-1df4dab74e1e/de0uz55-d81baa8f-a1e6-4c85-a116-a7c865d81f2b.png/v1/fill/w_1024,h_576,q_80,strp/dragon_blox_ultimate_by_itzduo_de0uz55-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9NTc2IiwicGF0aCI6IlwvZlwvY2NjZWFhOTctZGViYi00ZDIzLTkwMTItMWRmNGRhYjc0ZTFlXC9kZTB1ejU1LWQ4MWJhYThmLWExZTYtNGM4NS1hMTE2LWE3Yzg2NWQ4MWYyYi5wbmciLCJ3aWR0aCI6Ijw9MTAyNCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS5vcGVyYXRpb25zIl19.f25oq5g593PcgSZFvy1nANEOTDVidFgugu9iQdPZG_Y"
+                    }
+                }},
+                ["username"] = "Ultimate DBU Farm",
+                ["avatar_url"] = "https://static.wixstatic.com/media/03c1b0_f5011faad54b4e7f92cf106217e618d9~mv2.jpg/v1/fill/w_1933,h_763,al_c/03c1b0_f5011faad54b4e7f92cf106217e618d9~mv2.jpg",
+                ["attachments"] = {}
+            }
+            webhookmessage(data1, getgenv().WebhookURL)  -- Send the quest update message
+        end
+        
+        -- Send the player stats webhook message
+        local dataStats = {
             content = "",
             embeds = {{
                 title = "Stat Farm - " .. player.Name,
-                description = string.format("Planet: **%s**\nStrength: **%s**\nDefense: **%s**\nEnergy: **%s**\nSpeed: **%s**\nRebirths: **%d**", world, strength, defense, energy, speed, rebirths),
+                description = string.format("Planet: **%s**\nStrength: **%s**\nDefense: **%s**\nEnergy: **%s**\nSpeed: **%s**\nRebirths: **%d**\nLast Quest: **%s**", 
+                    "Earth", strength, defense, energy, speed, rebirths, lastQuest),
                 color = 6248703,
-                footer = {text = "v0.1", icon_url = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"},
-                thumbnail = {url = "https://tr.rbxcdn.com/180DAY-fa4640ea47b1096f1be0d0ecb3e58ba9/768/432/Image/Webp/noFilter"}
+                footer = {text = "Script Version v9.0"},
+                thumbnail = {url = "https://example.com/thumbnail.png"}  -- Replace with your thumbnail URL if needed
             }},
-            username = "webhook testing",
-            avatar_url = "https://cdn.discordapp.com/attachments/1294895323852050475/1295927395018215486/newid.png"
+            username = "Ultimate DBU Stats Bot",
+            avatar_url = "https://static.wixstatic.com/media/03c1b0_f5011faad54b4e7f92cf106217e618d9~mv2.jpg/v1/fill/w_1933,h_763,al_c/03c1b0_f5011faad54b4e7f92cf106217e618d9~mv2.jpg"
         }
-
-        webhookmessage(data, getgenv().WebhookURL)
+        webhookmessage(dataStats, getgenv().WebhookURL)  -- Send player stats message
     end
-end
-
--- Loop to send webhook every 5 minutes
-while true do
-    pcall(function() updatePlayerStatsAndSendWebhook(game.Players.LocalPlayer) end)
-    wait(300)  -- Wait for 5 minutes (300 seconds)
 end
