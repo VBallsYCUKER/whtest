@@ -21,21 +21,26 @@ end
 local function updatePlayerStatsAndSendWebhook(player)
     local playerStats = game.ReplicatedStorage:FindFirstChild("Datas"):FindFirstChild(tostring(player.UserId))
     if playerStats then
-        -- Fetch the specific stats (Rebirths and Energy)
-        local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Fetch rebirths
-        local energyStat = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge  -- Fetch energy
+        -- Fetch rebirths and energy
+        local rebirths = playerStats:FindFirstChild("Rebirth") and playerStats.Rebirth.Value or 0  -- Fetch rebirth data
+        local energyStat = playerStats:FindFirstChild("Energy") and playerStats.Energy.Value or math.huge  -- Fetch energy stat
 
         -- Prepare the data for the webhook message
-        local currentworld = (game.PlaceId == 5151400895) and "Bills" or "Earth"
+        local currentworld = ""
+        if game.PlaceId == 5151400895 then
+            currentworld = "Bills"
+        else
+            currentworld = "Earth"
+        end
 
-        -- Webhook message data including Rebs and Stats
+        -- Webhook message data including only energy and rebirths
         local data1 = {
             ["content"] = "",
             ["embeds"] = {{
                 ["title"] = "Stat Farm - " .. player.Name,
                 ["description"] = "Planet: **" .. currentworld .. "**\n" ..
                                   "Rebs: **" .. rebirths .. "**\n" ..
-                                  "Stats: **" .. energyStat .. "**",  -- Only includes Energy and Rebirths
+                                  "Stats: **" .. energyStat .. "**",
                 ["color"] = 6248703,
                 ["footer"] = {
                     ["text"] = "v0.1",
@@ -50,7 +55,7 @@ local function updatePlayerStatsAndSendWebhook(player)
             ["attachments"] = {}
         }
 
-        -- Send the webhook message with stats
+        -- Send the webhook message with energy and rebirths
         local HttpService = game:GetService("HttpService")
 
         local response = http_request({
